@@ -59,7 +59,17 @@ zabbix_export:
                   if (!obj || !Array.isArray(obj.data)) {
                       throw 'Invalid SIP peer JSON: expected data array';
                   }
-                  return JSON.stringify(obj.data);
+                  var rows = obj.data.map(function (p) {
+                      return {
+                          "{#PEERNAME}": p.name || "",
+                          "{#PEERTYPE}": p.type || "",
+                          "{#PEERHOST}": p.ip || "",
+                          "{#PEERPORT}": p.port === undefined ? "" : p.port,
+                          "{#PEERSTATUS}": p.status || "UNKNOWN",
+                          "{#PEERRTT}": p.rtt === undefined ? "" : p.rtt
+                      };
+                  });
+                  return JSON.stringify(rows);
           item_prototypes:
             - uuid: f5b74d9e0a234c8f9b6d1e2a3c4f5b60
               name: 'SIP peer {#PEERNAME}: IP address'
