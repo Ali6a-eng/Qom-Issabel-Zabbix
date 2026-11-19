@@ -28,6 +28,20 @@ zabbix_export:
           delay: 30s
           history: 7d
           value_type: UNSIGNED
+        - uuid: 2c6d8e0f1a3b4c5d9e7f001122334455
+          name: 'Asterisk active calls'
+          type: ZABBIX_PASSIVE
+          key: asterisk.calls
+          delay: 30s
+          history: 7d
+          value_type: UNSIGNED
+        - uuid: 3d7e9f1a2b4c5d6e8f00112233445566
+          name: 'Asterisk processed calls'
+          type: ZABBIX_PASSIVE
+          key: asterisk.processed
+          delay: 30s
+          history: 7d
+          value_type: UNSIGNED
       discovery_rules:
         - uuid: d3f52b9c7a8e4f1b9c6d5e7f8091a2b3
           name: 'Issabel SIP peer discovery'
