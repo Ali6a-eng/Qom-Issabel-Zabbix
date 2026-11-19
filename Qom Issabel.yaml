@@ -64,7 +64,7 @@ zabbix_export:
                       for (var i = 0; i < obj.data.length; i++) {
                           if (obj.data[i].name === "{#PEERNAME}" ||
                               obj.data[i]["{#PEERNAME}"] === "{#PEERNAME}") {
-                              return obj.data[i].ip || obj.data[i]["{#PEERHOST"] || "";
+                              return obj.data[i].ip || obj.data[i]["{#PEERHOST}"] || "";
                           }
                       }
                       return "";
@@ -93,13 +93,14 @@ zabbix_export:
                   expression: 'last(/Template Qom Issabel/issabel.sip.peer.status["{#PEERNAME}"])="OFFLINE"'
                   name: 'Issabel: SIP peer {#PEERNAME} OFFLINE ({#PEERTYPE})'
                   priority: HIGH
+      triggers:
         - uuid: 4a7b8c9d0e1f4234a5b6c7d8e9f00112
-          name: 'Asterisk process availability'
+          name: 'Issabel: Asterisk process is not running'
           expression: 'last(/Template Qom Issabel/proc.num[asterisk])=0'
           priority: HIGH
           description: 'Asterisk process is not running.'
         - uuid: 5b8c9d0e1f2a4345b6c7d8e9f0011223
-          name: 'Issabel Agent data missing'
+          name: 'Issabel: Agent data missing'
           expression: 'nodata(/Template Qom Issabel/issabel.sip.peers.raw,3m)=1'
           priority: HIGH
           description: 'No SIP peer data has been received for three minutes.'
