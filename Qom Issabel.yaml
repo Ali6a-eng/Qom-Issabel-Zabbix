@@ -1,0 +1,98 @@
+zabbix_export:
+  version: '8.0'
+  template_groups:
+    - uuid: 7df96b2a4c8e41d9a3f5b7c0e2d6a891
+      name: Templates/Telephony
+  templates:
+    - uuid: 8ae07c4d2b3f4a6c9d1e0f2a3b4c5d6e
+      template: 'Template Qom Issabel'
+      name: 'Template Qom Issabel'
+      description: 'Issabel 5 / Asterisk 18.19 / Zabbix 8.0'
+      groups:
+        - name: Templates/Telephony
+      items:
+        - uuid: a0c29e6f4d5b4c8e9f3a2b4c5d6e7f80
+          name: 'Asterisk active calls'
+          key: asterisk.calls
+          delay: 30s
+          history: 7d
+        - uuid: b1d30f7a5e6c4d9f8a4b3c5d6e7f8091
+          name: 'Asterisk processed calls'
+          key: asterisk.processed
+          delay: 60s
+          history: 30d
+        - uuid: 9bf18d5e3c4a4b7d8e2f1a3b4c5d6e7f
+          name: 'Asterisk SIP peers raw data'
+          key: issabel.sip.peers.raw
+          delay: 30s
+          history: 1d
+          value_type: TEXT
+        - uuid: c2e41a8b6f7d4e0a9b5c4d6e7f8091a2
+          name: 'Asterisk process count'
+          key: 'proc.num[asterisk]'
+          delay: 30s
+          history: 7d
+      discovery_rules:
+        - uuid: d3f52b9c7a8e4f1b9c6d5e7f8091a2b3
+          name: 'Issabel SIP peer discovery'
+          type: DEPENDENT
+          key: issabel.sip.peers.discovery.lld
+          item_prototypes:
+            - uuid: f5b74d9e0a234c8f9b6d1e2a3c4f5b60
+              name: 'SIP peer {#PEERNAME}: IP address'
+              type: DEPENDENT
+              key: 'issabel.sip.peer.ip["{#PEERNAME}"]'
+              history: 7d
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[?(@["{#PEERNAME}"]=="{#PEERNAME}")].{#PEERHOST}'
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var a = JSON.parse(value);
+                      return Array.isArray(a) ? (a.length ? a[0] : '') : value;
+              master_item:
+                key: issabel.sip.peers.raw
+            - uuid: e4a63c8d9f124b7e8a5c6d0f1b2e3a49
+              name: 'SIP peer {#PEERNAME}: status'
+              type: DEPENDENT
+              key: 'issabel.sip.peer.status["{#PEERNAME}"]'
+              history: 7d
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[?(@["{#PEERNAME}"]=="{#PEERNAME}")].{#PEERSTATUS}'
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      if (Array.isArray(JSON.parse(value))) {
+                          var a = JSON.parse(value);
+                          return a.length ? a[0] : 'UNKNOWN';
+                      }
+                      return value;
+              master_item:
+                key: issabel.sip.peers.raw
+              trigger_prototypes:
+                - uuid: 71a63c8d9f124b7e8a5c6d0f1b2e3a49
+                  expression: 'last(/Template Qom Issabel/issabel.sip.peer.status["{#PEERNAME}"])="OFFLINE"'
+                  name: 'Issabel: SIP peer {#PEERNAME} OFFLINE ({#PEERTYPE})'
+                  priority: HIGH
+          master_item:
+            key: issabel.sip.peers.raw
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var obj = JSON.parse(value);
+                  if (!obj.data || !Array.isArray(obj.data)) {
+                      throw 'Invalid SIP peer JSON';
+                  }
+                  return JSON.stringify(obj.data);
+      tags:
+        - tag: service
+          value: telephony
+        - tag: vendor
+          value: issabel
