@@ -21,6 +21,12 @@ zabbix_export:
           delay: 30s
           history: 1d
           value_type: TEXT
+          triggers:
+            - uuid: 5b8c9d0e1f2a4345b6c7d8e9f0011223
+              name: 'Issabel: Agent data missing'
+              expression: 'nodata(/Template Qom Issabel/issabel.sip.peers.raw,3m)=1'
+              priority: HIGH
+              description: 'No SIP peer data has been received for three minutes.'
         - uuid: c2e41a8b6f7d4e0a9b5c4d6e7f8091a2
           name: 'Asterisk process count'
           type: ZABBIX_PASSIVE
@@ -28,6 +34,12 @@ zabbix_export:
           delay: 30s
           history: 7d
           value_type: UNSIGNED
+          triggers:
+            - uuid: 4a7b8c9d0e1f4234a5b6c7d8e9f00112
+              name: 'Issabel: Asterisk process is not running'
+              expression: 'last(/Template Qom Issabel/proc.num[asterisk])=0'
+              priority: HIGH
+              description: 'Asterisk process is not running.'
       discovery_rules:
         - uuid: d3f52b9c7a8e4f1b9c6d5e7f8091a2b3
           name: 'Issabel SIP peer discovery'
@@ -88,22 +100,11 @@ zabbix_export:
                           }
                       }
                       return "UNKNOWN";
-              trigger_prototypes:
-                - uuid: 71a63c8d9f124b7e8a5c6d0f1b2e3a49
-                  expression: 'last(/Template Qom Issabel/issabel.sip.peer.status["{#PEERNAME}"])="OFFLINE"'
-                  name: 'Issabel: SIP peer {#PEERNAME} OFFLINE ({#PEERTYPE})'
-                  priority: HIGH
-      triggers:
-        - uuid: 4a7b8c9d0e1f4234a5b6c7d8e9f00112
-          name: 'Issabel: Asterisk process is not running'
-          expression: 'last(/Template Qom Issabel/proc.num[asterisk])=0'
-          priority: HIGH
-          description: 'Asterisk process is not running.'
-        - uuid: 5b8c9d0e1f2a4345b6c7d8e9f0011223
-          name: 'Issabel: Agent data missing'
-          expression: 'nodata(/Template Qom Issabel/issabel.sip.peers.raw,3m)=1'
-          priority: HIGH
-          description: 'No SIP peer data has been received for three minutes.'
+          trigger_prototypes:
+            - uuid: 71a63c8d9f124b7e8a5c6d0f1b2e3a49
+              expression: 'last(/Template Qom Issabel/issabel.sip.peer.status["{#PEERNAME}"])="OFFLINE"'
+              name: 'Issabel: SIP peer {#PEERNAME} OFFLINE ({#PEERTYPE})'
+              priority: HIGH
       tags:
         - tag: service
           value: telephony
