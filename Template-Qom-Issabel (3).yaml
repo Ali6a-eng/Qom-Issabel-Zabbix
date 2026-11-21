@@ -297,7 +297,7 @@ zabbix_export:
                       for (var i = 0; i < obj.data.length; i++) {
                         if (String(obj.data[i]["{#PEERNAME}"]) === id) {
                           var status = String(obj.data[i]["{#PEERSTATUS}"]).toUpperCase();
-                          if (/^(ONLINE|OK\\b)/.test(status)) return 1;
+                          if (/^(ONLINE|OK)/.test(status)) return 1;
                           if (/^(OFFLINE|UNREACHABLE|LAGGED|UNKNOWN)/.test(status)) return 2;
                           return 0;
                         }
@@ -327,7 +327,7 @@ zabbix_export:
                         if (String(obj.data[i]["{#PEERNAME}"]) === id) {
                           var status = String(obj.data[i]["{#PEERSTATUS}"]).toUpperCase();
                           var ip = String(obj.data[i]["{#PEERHOST}"] || "No IP");
-                          var colorStatus = /^(ONLINE|OK\\b)/.test(status) ? "ONLINE" : (/^(OFFLINE|UNREACHABLE|LAGGED)/.test(status) ? "OFFLINE" : "UNKNOWN");
+                          var colorStatus = /^(ONLINE|OK)/.test(status) ? "ONLINE" : (/^(OFFLINE|UNREACHABLE|LAGGED)/.test(status) ? "OFFLINE" : "UNKNOWN");
                           return colorStatus + " - " + ip;
                         }
                       }
