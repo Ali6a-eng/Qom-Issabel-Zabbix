@@ -1,0 +1,434 @@
+zabbix_export:
+  version: '8.0'
+  template_groups:
+    - uuid: e459847065484555bd9953359452c762
+      name: 'Template/Linux OS'
+  templates:
+    - uuid: c2dc85a740f145c6915feb3e4bb73671
+      template: 'Template Qom Issabel'
+      name: 'Template Qom Issabel'
+      description: 'Monitoring template for Issabel 5 / Asterisk 18 using verified Zabbix Agent 2 UserParameters. Linux CPU, memory and filesystem metrics are intentionally excluded and should remain provided by the existing Linux template.'
+      groups:
+        - name: 'Template/Linux OS'
+      items:
+        - uuid: 3cd2c83ed5014cdaabc758ce769707c1
+          name: 'Asterisk: Active calls'
+          type: DEPENDENT
+          key: issabel.asterisk.active_calls
+          history: 7d
+          units: calls
+          description: 'Extracted from issabel.asterisk.status JSON.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.active_calls
+          master_item:
+            key: issabel.asterisk.status
+          tags:
+            - tag: component
+              value: telephony
+        - uuid: 72eb7560046841878f5261d844ec3389
+          name: 'Asterisk: Active channels'
+          type: DEPENDENT
+          key: issabel.asterisk.active_channels
+          history: 7d
+          units: channels
+          description: 'Extracted from issabel.asterisk.status JSON.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.active_channels
+          master_item:
+            key: issabel.asterisk.status
+          tags:
+            - tag: component
+              value: telephony
+        - uuid: 37041f05a2174fb78a720dee38e0a1e5
+          name: 'Asterisk: Last reload'
+          type: DEPENDENT
+          key: issabel.asterisk.last_reload
+          history: 7d
+          value_type: CHAR
+          description: 'Extracted from issabel.asterisk.status JSON.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.last_reload
+          master_item:
+            key: issabel.asterisk.status
+          tags:
+            - tag: component
+              value: telephony
+        - uuid: 4c870b06cb424927a765f521050120c0
+          name: 'Asterisk: Processed calls'
+          type: DEPENDENT
+          key: issabel.asterisk.processed_calls
+          history: 7d
+          units: calls
+          description: 'Extracted from issabel.asterisk.status JSON.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.processed_calls
+          master_item:
+            key: issabel.asterisk.status
+          tags:
+            - tag: component
+              value: telephony
+        - uuid: 4f3e8faddf504604bb94ccd9de6cc71e
+          name: 'Asterisk status raw data'
+          key: issabel.asterisk.status
+          delay: 30s
+          history: '0'
+          value_type: TEXT
+          description: 'Raw JSON from the restricted Asterisk status helper.'
+          tags:
+            - tag: component
+              value: telephony
+          triggers:
+            - uuid: 37c0283a08934781a8cfac47b685dcbc
+              expression: 'nodata(/Template Qom Issabel/issabel.asterisk.status,3m)=1'
+              name: 'Issabel: Asterisk status data is unavailable'
+              priority: HIGH
+              description: 'No Asterisk status JSON has been received for 3 minutes. Check Zabbix agent and the restricted status helper.'
+              tags:
+                - tag: scope
+                  value: availability
+        - uuid: 14612c9d0e1d42dc9bfd1d450328b946
+          name: 'Asterisk: System uptime'
+          type: DEPENDENT
+          key: issabel.asterisk.uptime
+          history: 7d
+          value_type: CHAR
+          description: 'Extracted from issabel.asterisk.status JSON.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.system_uptime
+          master_item:
+            key: issabel.asterisk.status
+          tags:
+            - tag: component
+              value: telephony
+        - uuid: 2c8970e632f7408892648c7e95c0e580
+          name: 'Extensions discovery raw data'
+          key: issabel.extensions.discovery
+          history: '0'
+          value_type: TEXT
+          description: 'Raw JSON from Issabel database helper; contains all 156 configured SIP extensions.'
+          tags:
+            - tag: component
+              value: telephony
+          triggers:
+            - uuid: 1118eb84a7974127ade9e087a94bbda6
+              expression: 'nodata(/Template Qom Issabel/issabel.extensions.discovery,5m)=1'
+              name: 'Issabel: Extension inventory data is unavailable'
+              priority: WARNING
+              description: 'No extension inventory JSON has been received for 5 minutes.'
+              tags:
+                - tag: scope
+                  value: availability
+        - uuid: 5497eaf917ef4bb9869af6a317340725
+          name: 'SIP peers discovery raw data'
+          key: issabel.sip.peers.discovery
+          history: '0'
+          value_type: TEXT
+          description: 'Raw JSON from Asterisk SIP peer helper; includes peer IP, port, status and RTT.'
+          tags:
+            - tag: component
+              value: telephony
+          triggers:
+            - uuid: e0fc7c0747c2456e920f7986292978f1
+              expression: 'nodata(/Template Qom Issabel/issabel.sip.peers.discovery,3m)=1'
+              name: 'Issabel: SIP peer data is unavailable'
+              priority: HIGH
+              description: 'No SIP peer discovery JSON has been received for 3 minutes.'
+              tags:
+                - tag: scope
+                  value: availability
+      discovery_rules:
+        - uuid: 7e90fb12271842308dc6e137cc460c8f
+          name: 'Issabel SIP extensions discovery'
+          type: DEPENDENT
+          key: issabel.extensions.discovery.lld
+          description: 'Discovers all configured SIP extensions and their database descriptions.'
+          item_prototypes:
+            - uuid: d7d3e72a613b47188f1d8817300aa774
+              name: 'Extension {#EXTENSION} ({#NAME}): IP address'
+              type: DEPENDENT
+              key: 'issabel.extension.ip["{#EXTENSION}"]'
+              history: 7d
+              value_type: CHAR
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#EXTENSION}";
+                      for (var i = 0; i < obj.data.length; i++) {
+                        if (String(obj.data[i][" {#PEERNAME}"]) === id) {
+                          return obj.data[i]["{#PEERHOST}"];
+                        }
+                      }
+                      return "";
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#EXTENSION}'
+            - uuid: 29629e8208e3497aa2fe8c953c09ad59
+              name: 'Extension {#EXTENSION} ({#NAME}): SIP port'
+              type: DEPENDENT
+              key: 'issabel.extension.port["{#EXTENSION}"]'
+              history: 7d
+              units: port
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      
+                      for (var i = 0; i < obj.data.length; i++) {
+                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                              var port = parseInt(obj.data[i]["{#PEERPORT}"], 10);
+                              return isNaN(port) ? 0 : port;
+                          }
+                      }
+                      
+                      return 0;
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#EXTENSION}'
+            - uuid: e79a4451c9b74a8a9f277632bb9b5305
+              name: 'Extension {#EXTENSION} ({#NAME}): RTT'
+              type: DEPENDENT
+              key: 'issabel.extension.rtt["{#EXTENSION}"]'
+              history: 7d
+              value_type: FLOAT
+              units: ms
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      
+                      for (var i = 0; i < obj.data.length; i++) {
+                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                              var rtt = parseFloat(obj.data[i]["{#PEERRTT}"]);
+                              return isNaN(rtt) ? -1 : rtt;
+                          }
+                      }
+                      
+                      return -1;
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#EXTENSION}'
+            - uuid: bb5f4a77cb894f18889c0a5a9ec3dec9
+              name: 'Extension {#EXTENSION} ({#NAME}): SIP status'
+              type: DEPENDENT
+              key: 'issabel.extension.status["{#EXTENSION}"]'
+              history: 7d
+              value_type: CHAR
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#EXTENSION}";
+                      
+                      for (var i = 0; i < obj.data.length; i++) {
+                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                              return String(obj.data[i]["{#PEERSTATUS}"]);
+                          }
+                      }
+                      
+                      return "UNKNOWN";
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#EXTENSION}'
+              trigger_prototypes:
+                - uuid: 7ec2d1a4b8894cb0a75691e9d20dd57a
+                  expression: 'count(/Template Qom Issabel/issabel.extension.status["{#EXTENSION}"],3m,"regexp","^(UNREACHABLE|LAGGED.*)$")=3'
+                  name: 'Extension {#EXTENSION} ({#NAME}): SIP Unreachable'
+                  priority: AVERAGE
+                - uuid: e88371e9375a4295857e58f2bb3dc4b6
+                  expression: 'count(/Template Qom Issabel/issabel.extension.status["{#EXTENSION}"],5m,"eq","UNKNOWN")>=3 or count(/Template Qom Issabel/issabel.extension.status["{#EXTENSION}"],5m,"eq","UNREACHABLE")>=3'
+                  name: 'Issabel: Extension {#EXTENSION} ({#NAME}) is unavailable'
+                  priority: WARNING
+                  description: 'The extension has remained UNKNOWN or UNREACHABLE for at least three samples in five minutes. Verify handset power, network connectivity and SIP registration.'
+                  tags:
+                    - tag: component
+                      value: telephony
+                    - tag: scope
+                      value: availability
+          master_item:
+            key: issabel.extensions.discovery
+        - uuid: d4565763078b4967bbb70a289c534457
+          name: 'Asterisk SIP trunk discovery'
+          type: DEPENDENT
+          key: issabel.sip.trunks.discovery.lld
+          filter:
+            evaltype: AND
+            conditions:
+              - macro: '{#PEERTYPE}'
+                value: ^trunk$
+          description: 'Discovers SIP trunks from the Asterisk peer list.'
+          item_prototypes:
+            - uuid: c007995eaf4941ff923376e4ced1c94d
+              name: 'Trunk {#PEERNAME}: Remote IP address'
+              type: DEPENDENT
+              key: 'issabel.trunk.ip["{#PEERNAME}"]'
+              history: 7d
+              value_type: CHAR
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      for (var i = 0; i < obj.data.length; i++) {
+                        if (String(obj.data[i][" {#PEERNAME}"]) === id) {
+                          return obj.data[i]["{#PEERHOST}"];
+                        }
+                      }
+                      return "";
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#PEERNAME}'
+            - uuid: 752aa18a2bec4d9c9c2458280aae6600
+              name: 'Trunk {#PEERNAME}: SIP port'
+              type: DEPENDENT
+              key: 'issabel.trunk.port["{#PEERNAME}"]'
+              history: 7d
+              units: port
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      
+                      for (var i = 0; i < obj.data.length; i++) {
+                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                              var port = parseInt(obj.data[i]["{#PEERPORT}"], 10);
+                              return isNaN(port) ? 0 : port;
+                          }
+                      }
+                      
+                      return 0;
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#PEERNAME}'
+            - uuid: e5cf884298254a57824fb13c08942205
+              name: 'Trunk {#PEERNAME}: RTT'
+              type: DEPENDENT
+              key: 'issabel.trunk.rtt["{#PEERNAME}"]'
+              history: 7d
+              value_type: FLOAT
+              units: ms
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      
+                      for (var i = 0; i < obj.data.length; i++) {
+                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                              var rtt = parseFloat(obj.data[i]["{#PEERRTT}"]);
+                              return isNaN(rtt) ? -1 : rtt;
+                          }
+                      }
+                      
+                      return -1;
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#PEERNAME}'
+            - uuid: 2b7cd391b1914dd2a53a5c04117e04e9
+              name: 'Trunk {#PEERNAME}: SIP status'
+              type: DEPENDENT
+              key: 'issabel.trunk.status["{#PEERNAME}"]'
+              history: 7d
+              value_type: CHAR
+              description: 'Extracted from the cached SIP peer discovery JSON using the discovered peer identifier.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      for (var i = 0; i < obj.data.length; i++) {
+                        if (String(obj.data[i][" {#PEERNAME}"]) === id) {
+                          return obj.data[i]["{#PEERSTATUS}"];
+                        }
+                      }
+                      return "";
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#PEERNAME}'
+              trigger_prototypes:
+                - uuid: bed2776ce9d3458cb7e0cd5122b5aa8d
+                  expression: 'count(/Template Qom Issabel/issabel.trunk.status["{#PEERNAME}"],3m,"eq","UNKNOWN")>=2 or count(/Template Qom Issabel/issabel.trunk.status["{#PEERNAME}"],3m,"eq","UNREACHABLE")>=2'
+                  name: 'Issabel: SIP trunk {#PEERNAME} is unavailable'
+                  priority: HIGH
+                  description: 'The trunk has been UNKNOWN or UNREACHABLE for at least two samples in three minutes.'
+                  tags:
+                    - tag: component
+                      value: telephony
+                    - tag: scope
+                      value: availability
+          master_item:
+            key: issabel.sip.peers.discovery
+          overrides:
+            - name: 'SBC_TCI Severity Override'
+              step: '1'
+              filter:
+                conditions:
+                  - macro: '{#PEERNAME}'
+                    value: ^SBC_TCI$
+      macros:
+        - macro: '{$ISSABEL.ASTERISK.NODATA}'
+          value: 3m
+          description: 'Maximum allowed period without Asterisk status data.'
+        - macro: '{$ISSABEL.SIP.NODATA}'
+          value: 3m
+          description: 'Maximum allowed period without SIP peer data.'
