@@ -422,7 +422,6 @@ zabbix_export:
         - uuid: 9f8d7c6b5a4e4321a0b9c8d7e6f5a4b3
           name: 'Qom Issabel - Overview'
           display_period: '30'
-          auto_start: '0'
           pages:
             - name: 'Overview'
               widgets:
