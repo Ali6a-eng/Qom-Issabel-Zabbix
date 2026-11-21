@@ -1,7 +1,6 @@
 zabbix_export:
   version: '8.0'
   dashboards:
-    - uuid: 8a4c9e2f7b1d4a6c9f3e5b7d1a2c4e6f
       name: 'Qom Issabel - Management'
       display_period: '30'
       auto_start: '0'
