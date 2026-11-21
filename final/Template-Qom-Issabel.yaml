@@ -436,7 +436,7 @@ zabbix_export:
                       name: itemid.0
                       value:
                         host: 'Template Qom Issabel'
-                        name: 'Asterisk: Active calls'
+                        key: 'issabel.asterisk.active_calls'
                     - type: INTEGER
                       name: show.0
                       value: '1'
@@ -454,7 +454,7 @@ zabbix_export:
                       name: itemid.0
                       value:
                         host: 'Template Qom Issabel'
-                        name: 'Asterisk: Active channels'
+                        key: 'issabel.asterisk.active_channels'
                     - type: INTEGER
                       name: show.0
                       value: '1'
@@ -472,7 +472,7 @@ zabbix_export:
                       name: itemid.0
                       value:
                         host: 'Template Qom Issabel'
-                        name: 'Asterisk: Processed calls'
+                        key: 'issabel.asterisk.processed_calls'
                     - type: INTEGER
                       name: show.0
                       value: '1'
@@ -490,7 +490,7 @@ zabbix_export:
                       name: itemid.0
                       value:
                         host: 'Template Qom Issabel'
-                        name: 'Asterisk: System uptime'
+                        key: 'issabel.asterisk.uptime'
                     - type: INTEGER
                       name: show.0
                       value: '1'
