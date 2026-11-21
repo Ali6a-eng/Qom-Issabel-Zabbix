@@ -4,7 +4,7 @@ zabbix_export:
     - uuid: 8a4c9e2f7b1d4a6c9f3e5b7d1a2c4e6f
       name: 'Qom Issabel - Management'
       display_period: '30'
-      auto_start: '1'
+      auto_start: '0'
       pages:
         - name: 'Overview'
           widgets:
@@ -18,18 +18,6 @@ zabbix_export:
                 - type: INTEGER
                   name: show
                   value: '3'
-            - type: system_info
-              name: 'Zabbix Server'
-              x: '0'
-              y: '5'
-              width: '12'
-              height: '4'
-            - type: host_availability
-              name: 'Host Availability'
-              x: '12'
-              y: '5'
-              width: '12'
-              height: '4'
             - type: clock
               name: 'Local Time'
               x: '0'
