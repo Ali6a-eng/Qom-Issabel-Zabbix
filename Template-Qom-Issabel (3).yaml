@@ -461,8 +461,8 @@ zabbix_export:
                       for (var i = 0; i < obj.data.length; i++) {
                         if (String(obj.data[i][nameKey]) === id) {
                           var status = String(obj.data[i][statusKey] || "UNKNOWN").toUpperCase();
-                          if (/^(OK|ONLINE)\\b/.test(status)) return 1;
-                          if (/^(OFFLINE|UNREACHABLE|LAGGED)\\b/.test(status)) return 2;
+                          if (status.indexOf("OK") === 0 || status.indexOf("ONLINE") === 0) return 1;
+                          if (status.indexOf("OFFLINE") === 0 || status.indexOf("UNREACHABLE") === 0 || status.indexOf("LAGGED") === 0) return 2;
                           return 0;
                         }
                       }
