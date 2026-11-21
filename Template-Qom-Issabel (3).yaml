@@ -365,9 +365,11 @@ zabbix_export:
                     - |
                       var obj = JSON.parse(value);
                       var id = "{#PEERNAME}";
+                      var nameKey = "{#PEER" + "NAME}";
+                      var hostKey = "{#PEER" + "HOST}";
                       for (var i = 0; i < obj.data.length; i++) {
-                        if (String(obj.data[i]["{#PEERNAME}"]) === id) {
-                          return obj.data[i]["{#PEERHOST}"];
+                        if (String(obj.data[i][nameKey]) === id) {
+                          return String(obj.data[i][hostKey] || "");
                         }
                       }
                       return "";
@@ -391,10 +393,12 @@ zabbix_export:
                     - |
                       var obj = JSON.parse(value);
                       var id = "{#PEERNAME}";
+                      var nameKey = "{#PEER" + "NAME}";
+                      var portKey = "{#PEER" + "PORT}";
                       
                       for (var i = 0; i < obj.data.length; i++) {
-                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
-                              var port = parseInt(obj.data[i]["{#PEERPORT}"], 10);
+                          if (String(obj.data[i][nameKey]) === id) {
+                              var port = parseInt(obj.data[i][portKey], 10);
                               return isNaN(port) ? 0 : port;
                           }
                       }
@@ -421,10 +425,12 @@ zabbix_export:
                     - |
                       var obj = JSON.parse(value);
                       var id = "{#PEERNAME}";
+                      var nameKey = "{#PEER" + "NAME}";
+                      var rttKey = "{#PEER" + "RTT}";
                       
                       for (var i = 0; i < obj.data.length; i++) {
-                          if (String(obj.data[i]["{#PEERNAME}"]) === id) {
-                              var rtt = parseFloat(obj.data[i]["{#PEERRTT}"]);
+                          if (String(obj.data[i][nameKey]) === id) {
+                              var rtt = parseFloat(obj.data[i][rttKey]);
                               return isNaN(rtt) ? -1 : rtt;
                           }
                       }
@@ -450,9 +456,11 @@ zabbix_export:
                     - |
                       var obj = JSON.parse(value);
                       var id = "{#PEERNAME}";
+                      var nameKey = "{#PEER" + "NAME}";
+                      var statusKey = "{#PEER" + "STATUS}";
                       for (var i = 0; i < obj.data.length; i++) {
-                        if (String(obj.data[i]["{#PEERNAME}"]) === id) {
-                          return obj.data[i]["{#PEERSTATUS}"];
+                        if (String(obj.data[i][nameKey]) === id) {
+                          return String(obj.data[i][statusKey] || "UNKNOWN");
                         }
                       }
                       return "UNKNOWN";
