@@ -281,6 +281,63 @@ zabbix_export:
                       value: telephony
                     - tag: scope
                       value: availability
+            - uuid: a4e6b8c0d2f441579a3c6e8b0d2f4a61
+              name: 'Extension {#EXTENSION} ({#NAME}): Registration color'
+              type: DEPENDENT
+              key: 'issabel.extension.status.code["{#EXTENSION}"]'
+              history: 7d
+              value_type: UNSIGNED
+              description: 'Numeric registration state for dashboard coloring: 0 unknown, 1 online, 2 offline.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#EXTENSION}";
+                      for (var i = 0; i < obj.data.length; i++) {
+                        if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                          var status = String(obj.data[i]["{#PEERSTATUS}"]).toUpperCase();
+                          if (status.indexOf("ONLINE") === 0) return 1;
+                          if (/^(OFFLINE|UNREACHABLE|LAGGED)/.test(status)) return 2;
+                          return 0;
+                        }
+                      }
+                      return 0;
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#EXTENSION}'
+            - uuid: b5f7c9d1e3a54268ab4d7f9c1e3a5b72
+              name: 'Extension {#EXTENSION} ({#NAME}): IP and status'
+              type: DEPENDENT
+              key: 'issabel.extension.ip.status["{#EXTENSION}"]'
+              history: 7d
+              value_type: CHAR
+              description: 'IP address prefixed with SIP registration state for dashboard text highlighting.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#EXTENSION}";
+                      for (var i = 0; i < obj.data.length; i++) {
+                        if (String(obj.data[i]["{#PEERNAME}"]) === id) {
+                          var status = String(obj.data[i]["{#PEERSTATUS}"]).toUpperCase();
+                          var ip = String(obj.data[i]["{#PEERHOST}"] || "No IP");
+                          return status + " - " + ip;
+                        }
+                      }
+                      return "UNKNOWN - No IP";
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#EXTENSION}'
           master_item:
             key: issabel.extensions.discovery
         - uuid: d4565763078b4967bbb70a289c534457
@@ -527,12 +584,27 @@ zabbix_export:
                   fields:
                     - type: STRING
                       name: items.0
-                      value: 'Extension *: SIP status'
+                      value: 'Extension *: Registration color'
                     - type: INTEGER
                       name: show.0
                       value: '1'
-                    - type: INTEGER
-                      name: show.1
+                    - type: STRING
+                      name: thresholds.0.color
+                      value: '9E9E9E'
+                    - type: STRING
+                      name: thresholds.0.threshold
+                      value: '0'
+                    - type: STRING
+                      name: thresholds.1.color
+                      value: '00C853'
+                    - type: STRING
+                      name: thresholds.1.threshold
+                      value: '1'
+                    - type: STRING
+                      name: thresholds.2.color
+                      value: 'FF1744'
+                    - type: STRING
+                      name: thresholds.2.threshold
                       value: '2'
                     - type: STRING
                       name: primary_label
@@ -552,10 +624,31 @@ zabbix_export:
                   fields:
                     - type: STRING
                       name: columns.0.items.0
-                      value: 'Extension *: IP address'
+                      value: 'Extension *: IP and status'
                     - type: INTEGER
                       name: columns.0.display_value_as
                       value: '2'
+                    - type: STRING
+                      name: columns.0.base_color
+                      value: '9E9E9E'
+                    - type: STRING
+                      name: columns.0.highlights.0.color
+                      value: '00C853'
+                    - type: STRING
+                      name: columns.0.highlights.0.pattern
+                      value: '^ONLINE\\b'
+                    - type: STRING
+                      name: columns.0.highlights.1.color
+                      value: 'FF1744'
+                    - type: STRING
+                      name: columns.0.highlights.1.pattern
+                      value: '^(OFFLINE|UNREACHABLE|LAGGED)'
+                    - type: STRING
+                      name: columns.0.highlights.2.color
+                      value: '9E9E9E'
+                    - type: STRING
+                      name: columns.0.highlights.2.pattern
+                      value: '^UNKNOWN'
                     - type: INTEGER
                       name: layout
                       value: '1'
