@@ -443,6 +443,37 @@ zabbix_export:
                   value: telephony
                 - tag: peer
                   value: '{#PEERNAME}'
+            - uuid: 7c1e9a2b4d6f4380a1b2c3d4e5f60718
+              name: 'Trunk {#PEERNAME}: Registration color'
+              type: DEPENDENT
+              key: 'issabel.trunk.status.code["{#PEERNAME}"]'
+              history: 7d
+              value_type: UNSIGNED
+              description: 'Numeric trunk state for dashboard coloring: 0 unknown, 1 online, 2 offline.'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var obj = JSON.parse(value);
+                      var id = "{#PEERNAME}";
+                      var nameKey = "{#PEER" + "NAME}";
+                      var statusKey = "{#PEER" + "STATUS}";
+                      for (var i = 0; i < obj.data.length; i++) {
+                        if (String(obj.data[i][nameKey]) === id) {
+                          var status = String(obj.data[i][statusKey] || "UNKNOWN").toUpperCase();
+                          if (/^(OK|ONLINE)\\b/.test(status)) return 1;
+                          if (/^(OFFLINE|UNREACHABLE|LAGGED)\\b/.test(status)) return 2;
+                          return 0;
+                        }
+                      }
+                      return 0;
+              master_item:
+                key: issabel.sip.peers.discovery
+              tags:
+                - tag: component
+                  value: telephony
+                - tag: peer
+                  value: '{#PEERNAME}'
             - uuid: 2b7cd391b1914dd2a53a5c04117e04e9
               name: 'Trunk {#PEERNAME}: SIP status'
               type: DEPENDENT
@@ -740,12 +771,27 @@ zabbix_export:
                   fields:
                     - type: STRING
                       name: items.0
-                      value: 'Trunk *: SIP status'
+                      value: 'Trunk *: Registration color'
                     - type: INTEGER
                       name: show.0
                       value: '1'
-                    - type: INTEGER
-                      name: show.1
+                    - type: STRING
+                      name: thresholds.0.color
+                      value: '9E9E9E'
+                    - type: STRING
+                      name: thresholds.0.threshold
+                      value: '0'
+                    - type: STRING
+                      name: thresholds.1.color
+                      value: '00C853'
+                    - type: STRING
+                      name: thresholds.1.threshold
+                      value: '1'
+                    - type: STRING
+                      name: thresholds.2.color
+                      value: 'FF1744'
+                    - type: STRING
+                      name: thresholds.2.threshold
                       value: '2'
                     - type: STRING
                       name: primary_label
