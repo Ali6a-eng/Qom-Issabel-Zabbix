@@ -1,0 +1,44 @@
+zabbix_export:
+  version: '8.0'
+  dashboards:
+    - uuid: 8a4c9e2f7b1d4a6c9f3e5b7d1a2c4e6f
+      name: 'Qom Issabel - Management'
+      display_period: '30'
+      auto_start: ' ಮನೆ'
+      pages:
+        - name: 'Overview'
+          widgets:
+            - type: problems
+              name: 'Current Problems'
+              x: '0'
+              y: '0'
+              width: '24'
+              height: '5'
+              fields:
+                - type: INTEGER
+                  name: show
+                  value: '3'
+            - type: system_info
+              name: 'Zabbix Server'
+              x: '0'
+              y: '5'
+              width: '12'
+              height: '4'
+            - type: host_availability
+              name: 'Host Availability'
+              x: '12'
+              y: '5'
+              width: '12'
+              height: '4'
+            - type: clock
+              name: 'Local Time'
+              x: '0'
+              y: '9'
+              width: '6'
+              height: '4'
+            - type: actionlog
+              name: 'Recent Actions'
+              x: '6'
+              y: '9'
+              width: '18'
+              height: '4'
